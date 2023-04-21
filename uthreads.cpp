@@ -6,25 +6,16 @@
 
 #include "uthreads.h"
 
-typedef enum state{
-    "RUNNING": 0,
-    "READY": 1,
-    "BLOCKED": 2
-} state;
-
-struct Thread{
-    int id;
-    sigjmp_buf sig_buf;
-    state state;
-};
 
 
+int uthread_init(int quantum_usecs){
+    if (quantum_usecs <= 0){
+        return -1;
+    }
 
-RUNNING
 
-
-
-int uthread_init(int quantum_usecs);
+    return 1;
+}
 
 int uthread_spawn(thread_entry_point entry_point);
 
@@ -43,4 +34,3 @@ int uthread_get_total_quantums();
 int uthread_get_quantums(int tid);
 
 
-#endif
