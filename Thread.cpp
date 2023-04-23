@@ -49,7 +49,7 @@ address_t translate_address(address_t addr)
 
 #endif
 
-Thread::Thread(int id, void (*f)(void)) : id(id), quantum(0)
+Thread::Thread(int id, void (*f)(void)) : id(id), quantum(0), state(READY)
 {
     address_t sp = (address_t) stack + STACK_SIZE - sizeof(address_t);
     address_t pc = (address_t) f;
