@@ -36,24 +36,29 @@ int ThreadManager::get_first_available_id() {
     return 0;
 }
 
-std::map<int, ThreadPointer>::iterator ThreadManager::get_first_thread() {
-    return this->threads.begin();
-}
 
-std::map<int, ThreadPointer>::iterator ThreadManager::get_last_thread() {
-    return this->threads.end();
-}
-
-std::ostream &operator<<(std::ostream &stream, ThreadManager &thread_manager) {
-    std::map<int, ThreadPointer>::iterator it;
+std::ostream &operator<<(std::ostream &stream, const ThreadManager &thread_manager) {
     stream << "Printing Thread Manager's data" << std::endl;
     stream << "Threads: " << std::endl;
-    for (it = thread_manager.get_first_thread(); it != thread_manager.get_last_thread(); it++)
-    {
-        stream << it->first    // string (key)
-                  << ':'
-                  << it->second   // string's value
-                  << std::endl;
+
+    for(const auto& thread: thread_manager.threads){
+        stream << thread.first    // string (key)
+               << ':'
+               << thread.second   // string's value
+               << std::endl;
+    }
+    return stream;
+}
+
+void ThreadManager::debug() {
+    std::cout << "Printing Thread Manager's data" << std::endl;
+    std::cout << "Threads: " << std::endl;
+
+    for(const auto& thread: this->threads){
+        std::cout << thread.first    // string (key)
+               << ':'
+               << thread.second   // string's value
+               << std::endl;
     }
 }
 

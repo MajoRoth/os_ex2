@@ -17,7 +17,7 @@ int main(){
     manager->append_thread(t1);
     manager->append_thread(t2);
     manager->append_thread(t3);
-    std::cout << manager << std::endl;
+    manager->debug();
 
 
 }

@@ -25,13 +25,14 @@ private:
 public:
     int get_max_id();
     int get_first_available_id();
-    std::map<int, ThreadPointer>::iterator get_first_thread();
-    std::map<int, ThreadPointer>::iterator  get_last_thread();
 
     int append_thread(ThreadPointer thread_ptr);
     int remove_thread(ThreadPointer thread_ptr);
 
+    /* CHECK WHY IT IS NOT WORKING */
     friend std::ostream& operator<< (std::ostream& stream, const ThreadManager & thread_manager);
+
+    void debug();
 };
 
 
