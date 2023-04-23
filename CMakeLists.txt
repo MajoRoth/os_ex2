@@ -9,5 +9,5 @@ add_executable(os_ex2
         main.cpp
         Thread.cpp
         Thread.h
-        ThreadManafer.cpp
+        ThreadManager.cpp
         ThreadManager.h)

@@ -4,4 +4,6 @@
 
 #include "Thread.h"
 
-
+Thread::Thread(int id, void (*f)(void)) {
+    this->id = id;
+}
