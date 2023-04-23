@@ -6,6 +6,7 @@
 #define EX2_THREAD_H
 
 #include <setjmp.h>
+#include "uthreads.h"
 
 enum State{
     RUNNING, BLOCKED, READY
@@ -15,22 +16,24 @@ class Thread{
 
 private:
     int id;
-    int quantom;
-    sigjmp_buf environment_data;
+    int quantum;
+    sigjmp_buf environmentData;
     State state;
+    char stack[STACK_SIZE];
 
 public:
     /* Constructors */
     Thread(int id, void (*f)(void));
 
     /* Setters */
-    void setQuantom(int quantom_usecs): quantom(quantom_usecs);
-    void setState(State state);
+    //void setQuantom(int quantom_usecs): quantom(quantom_usecs);
+    void setState(State newState) {state=newState;}
 
     /* Getters */
-    int getId();
-    int getQuantom();
-    State getState();
+    int getId() {return id;}
+    int getQuantum() {return quantum;}
+    State getState() {return state;}
+    sigjmp_buf &getEnvironmentData() {return environmentData;}
 
 
 
