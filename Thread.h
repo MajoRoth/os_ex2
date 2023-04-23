@@ -28,6 +28,7 @@ public:
     /* Setters */
     //void setQuantom(int quantom_usecs): quantom(quantom_usecs);
     void setState(State newState) {state=newState;}
+    void incQuantum(void) {quantum++;}
 
     /* Getters */
     int getId() {return id;}
