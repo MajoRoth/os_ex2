@@ -5,6 +5,8 @@
  */
 
 #include "uthreads.h"
+#include "Thread.h"
+
 
 
 
@@ -13,8 +15,11 @@ int uthread_init(int quantum_usecs){
         return -1;
     }
 
+    main_thread = new Thread(0, nullptr);
+    main_thread->setQuantom(quantum_usecs);
 
-    return 1;
+
+    return 0;
 }
 
 int uthread_spawn(thread_entry_point entry_point);

@@ -24,7 +24,7 @@ public:
     Thread(int id, void (*f)(void));
 
     /* Setters */
-    void setQuantom(int quantom);
+    void setQuantom(int quantom_usecs): quantom(quantom_usecs);
     void setState(State state);
 
     /* Getters */
