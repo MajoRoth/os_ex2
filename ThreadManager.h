@@ -7,7 +7,8 @@
 
 #include <map>
 #include <memory>
-
+#include <vector>
+#include <queue>
 #include "Thread.h"
 
 typedef std::shared_ptr<Thread> ThreadPointer;
@@ -18,13 +19,14 @@ private:
     std::map<int, ThreadPointer> threads;
     int size;  /* Is it necessery? */
 
-    bool check_if_id_in_threads(int id);
+    std::priority_queue <int, std::vector<int>, std::greater<int> > minHeap;
 
 
 
 public:
-    int get_max_id();
     int get_first_available_id();
+
+    ThreadManager(void);
 
     int append_thread(ThreadPointer thread_ptr);
     int remove_thread(ThreadPointer thread_ptr);
@@ -34,6 +36,5 @@ public:
 
     void debug();
 };
-
 
 #endif //OS_EX2_THREADMANAGER_H
