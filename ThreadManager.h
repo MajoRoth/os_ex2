@@ -20,23 +20,18 @@ private:
     std::priority_queue <int, std::vector<int>, std::greater<int> > minHeap;
 
 public:
-
     ThreadManager(void);
 
     int get_first_available_id();
+    int getSize() const {return threads.size();};
 
     int append_thread(void (*f)(void));
-
     int delete_thread(int id);
 
-    /* CHECK WHY IT IS NOT WORKING */
+    bool exists(int tid) const {return threads.find(tid) != threads.end();};
+    bool has_available_space() const {return getSize() <= MAX_THREAD_NUM;};
+
     friend std::ostream& operator<< (std::ostream& stream, const ThreadManager & thread_manager);
-
-    void debug();
-
-    int getSize();
-    bool exists(int tid);
-    bool has_available_space();
 };
 
 #endif //OS_EX2_THREADMANAGER_H

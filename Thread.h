@@ -7,6 +7,7 @@
 
 #include <setjmp.h>
 #include "uthreads.h"
+#include <iostream>
 
 enum State{
     RUNNING, BLOCKED, READY
@@ -31,10 +32,13 @@ public:
     void incQuantum(void) {quantum++;}
 
     /* Getters */
-    int getId() {return id;}
-    int getQuantum() {return quantum;}
-    State getState() {return state;}
+    int getId() const {return id;}
+    int getQuantum() const {return quantum;}
+    State getState() const {return state;}
     sigjmp_buf &getEnvironmentData() {return environmentData;}
+
+    friend std::ostream& operator<< (std::ostream& stream, const Thread & thread);
+
 
 
 

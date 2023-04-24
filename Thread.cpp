@@ -6,6 +6,7 @@
 #include <setjmp.h>
 #include <signal.h>
 #include <unistd.h>
+#include <iostream>
 
 #ifdef __x86_64__
 /* code for 64 bit Intel arch */
@@ -57,5 +58,11 @@ Thread::Thread(int id, void (*f)(void)) : id(id), quantum(0), state(READY)
     (environmentData->__jmpbuf)[JB_SP] = translate_address(sp);
     (environmentData->__jmpbuf)[JB_PC] = translate_address(pc);
     sigemptyset(&environmentData->__saved_mask);
+}
+
+
+std::ostream& operator<< (std::ostream& stream, const Thread & thread){
+    stream << "Thread {id=" << thread.getId() << "}: quantom=" << thread.getQuantum() << " state=" << thread.getState() << std::endl;
+    return stream;
 }
 
