@@ -66,3 +66,11 @@ std::ostream& operator<< (std::ostream& stream, const Thread & thread){
     return stream;
 }
 
+int Thread::decrement_quantums_to_sleep() {
+    sleep_quantums_left--;
+    if (sleep_quantums_left == 0){
+        return 0;
+    }
+    return 1;
+}
+

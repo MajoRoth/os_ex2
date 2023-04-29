@@ -10,7 +10,7 @@
 #include <iostream>
 
 enum State{
-    RUNNING, BLOCKED, READY
+    RUNNING, BLOCKED, READY, TERMINATE, SLEEP
 };
 
 class Thread{
@@ -19,8 +19,8 @@ private:
     int id;
     int quantum;
     sigjmp_buf environmentData;
-    State state;
     char stack[STACK_SIZE];
+    int sleep_quantums_left;
 
 public:
     /* Constructors */
@@ -28,14 +28,15 @@ public:
 
     /* Setters */
     //void setQuantom(int quantom_usecs): quantom(quantom_usecs);
-    void setState(State newState) {state=newState;}
     void incQuantum(void) {quantum++;}
+    void set_quantums_to_sleep(int quantums): sleep_quantums_left(quantums);
 
     /* Getters */
     int getId() const {return id;}
     int getQuantum() const {return quantum;}
-    State getState() const {return state;}
     sigjmp_buf &getEnvironmentData() {return environmentData;}
+
+    int decrement_quantums_to_sleep();
 
     friend std::ostream& operator<< (std::ostream& stream, const Thread & thread);
 
