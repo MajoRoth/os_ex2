@@ -72,6 +72,15 @@ void debug (void) {
     for(const auto& id: ready_queue){
         std::cout << id << " ";
     }
+    std::cout << "Blocked Set: " << std::endl;
+    for(const auto& id: blocked_set){
+        std::cout << id << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "Sleeping Set: " << std::endl;
+    for(const auto& id: sleeping_set){
+        std::cout << id << " ";
+    }
     std::cout << std::endl;
     std::cout << "Threads: " << std::endl;
 

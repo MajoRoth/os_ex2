@@ -42,5 +42,6 @@ int main(){
     wait_for_a_second();
     wait_for_a_second();
     wait_for_a_second();
+
     while(1){}
 }
