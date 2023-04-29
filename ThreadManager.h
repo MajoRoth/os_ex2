@@ -9,6 +9,10 @@
 #include <memory>
 #include <vector>
 #include <queue>
+#include <sys/time.h>
+#include <csignal>
+#include <signal.h>
+#include <setjmp.h>
 #include "Thread.h"
 
 typedef std::shared_ptr<Thread> ThreadPointer;
@@ -19,8 +23,15 @@ private:
     std::map<int, ThreadPointer> threads;
     std::priority_queue <int, std::vector<int>, std::greater<int> > minHeap;
 
+    int quantum;
+    struct itimerval timer;
+    struct sigaction sa;
+
+    int totalQuantum;
+
+
 public:
-    ThreadManager(void);
+    ThreadManager(int quantum);
 
     int get_first_available_id();
     int getSize() const {return threads.size();};
@@ -30,6 +41,8 @@ public:
 
     bool exists(int tid) const {return threads.find(tid) != threads.end();};
     bool has_available_space() const {return getSize() <= MAX_THREAD_NUM;};
+
+    void timer_handler(int sig);
 
     friend std::ostream& operator<< (std::ostream& stream, const ThreadManager & thread_manager);
 };
