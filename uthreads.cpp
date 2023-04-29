@@ -74,11 +74,11 @@ void debug (void) {
     }
     std::cout << std::endl;
     std::cout << "Threads: " << std::endl;
-    std::cout << "sec: " << timer.it_interval.tv_sec << "usec: " << timer.it_interval.tv_usec <<std::endl;
 
     for(const auto& thread: threads){
         std::cout << *thread.second;
     }
+    std::cout << " ------------------------------------- " << std::endl;
 }
 
 int delete_thread(int id) {
@@ -108,7 +108,6 @@ void timer_handler(int sig)
 int scheduler(){
     if (running_id != -1) {
         int returned_val = sigsetjmp(threads[running_id]->getEnvironmentData(), 1);
-        std::cout << "RETURNED VAL: " << returned_val <<std::endl;
         if (returned_val != 0)
         {
             return 0;
