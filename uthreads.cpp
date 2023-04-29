@@ -23,7 +23,6 @@ typedef std::shared_ptr<Thread> ThreadPointer;
 std::map<int, ThreadPointer> threads;
 std::priority_queue <int, std::vector<int>, std::greater<int> > minHeap;
 
-int quantum;
 struct itimerval timer;
 struct sigaction sa;
 
@@ -95,10 +94,10 @@ int uthread_init(int quantum_usecs){
     }
 
     // Define The Timer
-    timer.it_value.tv_sec = quantum / 100000;
-    timer.it_value.tv_usec = quantum % 100000;
-    timer.it_interval.tv_sec = quantum / 100000;
-    timer.it_interval.tv_usec = quantum % 100000;
+    timer.it_value.tv_sec = quantum_usecs / 100000;
+    timer.it_value.tv_usec = quantum_usecs % 100000;
+    timer.it_interval.tv_sec = quantum_usecs / 100000;
+    timer.it_interval.tv_usec = quantum_usecs % 100000;
 
     totalQuantum = 1;
 
@@ -111,7 +110,7 @@ int uthread_init(int quantum_usecs){
 
 int uthread_spawn(thread_entry_point entry_point){
     if (entry_point == nullptr){
-        std::cout << "ERROR: uthread_spawn() cannot recive nullptr as an input" << std::endl;
+        std::cout << "ERROR: uthread_spawn() cannot receive nullptr as an input" << std::endl;
         return -1;
     }
     if(has_available_space()){
