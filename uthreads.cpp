@@ -20,7 +20,7 @@
 #include "uthreads.h"
 #include "Thread.h"
 
-void scheduler(void);
+int scheduler(void);
 
 #define BLOCK_SIGNALS() sigprocmask(SIG_SETMASK, &signals_set, NULL)
 #define UNBLOCK_SIGNALS() sigprocmask(SIG_UNBLOCK, &signals_set, NULL)
@@ -36,8 +36,6 @@ std::set<int> blocked_set;
 std::set<int> sleeping_set;
 int running_id;
 State running_thread_state;
-int thread_to_terminate;
-int thread_to_block;
 
 // Timer
 struct itimerval timer;
@@ -65,7 +63,8 @@ int append_thread(void (*f)(void)){
 }
 
 void debug (void) {
-    std::cout << "Printing Thread Manager's data" << std::endl;
+    std::cout << "Printing uthreads library data" << std::endl;
+    std::cout << "running_id: " << running_id << " running_thread_state: " << running_thread_state << " totalQuantum: " << totalQuantum << std::endl;
     std::cout << "Threads: " << std::endl;
 
     for(const auto& thread: threads){
@@ -97,9 +96,14 @@ void timer_handler(int sig)
     scheduler();
 }
 
-void scheduler(){
+int scheduler(){
     if (running_id != -1){
         int returned_val = sigsetjmp(threads[running_id]->getEnvironmentData(), 1);
+
+        if (returned_val == 1){
+            std::cout << "scheduler got 1 fromm sigsetjmp. exiting." << std::endl;
+            return -1;
+        }
 
         if (running_thread_state == SLEEP){
             sleeping_set.insert(running_id);
@@ -195,10 +199,11 @@ int uthread_spawn(thread_entry_point entry_point){
 
 int uthread_terminate(int tid){
     if (tid == 0){
-        //TODO: Terminate the entire program
+        exit(0);
     }
     if (!does_thread_exist(tid))
     {
+        std::cout << "ERROR: tid {" << tid <<"} doesn't exist in threads list" << std::endl;
         return -1;
     }
 
@@ -229,6 +234,7 @@ int uthread_block(int tid){
     }
     if (!does_thread_exist(tid))
     {
+        std::cout << "ERROR: tid {" << tid <<"} doesn't exist in threads list" << std::endl;
         return -1;
     }
 
@@ -256,6 +262,7 @@ int uthread_block(int tid){
 int uthread_resume(int tid){
     if (!does_thread_exist(tid))
     {
+        std::cout << "ERROR: tid {" << tid <<"} doesn't exist in threads list" << std::endl;
         return -1;
     }
 
@@ -273,6 +280,7 @@ int uthread_sleep(int num_quantums){
     }
     if (!does_thread_exist(running_id))
     {
+        std::cout << "ERROR: tid {" << running_id <<"} doesn't exist in threads list" << std::endl;
         return -1;
     }
     running_thread_state = SLEEP;
@@ -292,6 +300,7 @@ int uthread_get_total_quantums(){
 int uthread_get_quantums(int tid){
     if (!does_thread_exist(tid))
     {
+        std::cout << "ERROR: tid {" << tid <<"} doesn't exist in threads list" << std::endl;
         return -1;
     }
     return threads[tid]->getQuantum();

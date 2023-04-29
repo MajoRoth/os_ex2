@@ -50,7 +50,7 @@ address_t translate_address(address_t addr)
 
 #endif
 
-Thread::Thread(int id, void (*f)(void)) : id(id), quantum(0), state(READY)
+Thread::Thread(int id, void (*f)(void)) : id(id), quantum(0)
 {
     address_t sp = (address_t) stack + STACK_SIZE - sizeof(address_t);
     address_t pc = (address_t) f;
@@ -62,7 +62,7 @@ Thread::Thread(int id, void (*f)(void)) : id(id), quantum(0), state(READY)
 
 
 std::ostream& operator<< (std::ostream& stream, const Thread & thread){
-    stream << "Thread {id=" << thread.getId() << "}: quantom=" << thread.getQuantum() << " state=" << thread.getState() << std::endl;
+    stream << "Thread {id=" << thread.getId() << "}: quantom=" << thread.getQuantum() << std::endl;
     return stream;
 }
 
