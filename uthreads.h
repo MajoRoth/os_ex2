@@ -52,7 +52,7 @@ int uthread_spawn(thread_entry_point entry_point);
  * is considered an error. Terminating the main thread (tid == 0) will result in the termination of the entire
  * process using exit(0) (after releasing the assigned library memory).
  *
- * @return The function returns 0 if the thread was successfully terminated and -1 otherwise. If a thread terminates
+ * @return The function returns 0 if the thread was successfully terminated and -1 otherwise. If a thread t  erminates
  * itself or the main thread is terminated, the function does not return.
 */
 int uthread_terminate(int tid);

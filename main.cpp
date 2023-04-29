@@ -23,10 +23,21 @@ void f2(void){
     }
 }
 
+void f3(void){
+    int i =1;
+    while(1){
+        if (i %1000000000 == 0){
+            i*i;
+            std::cout << "f3" << std::endl;
+        }
+        i++;
+    }
+}
+
 void wait_for_a_second(){
     int i =1;
     while(1){
-        if (i %10000000000 == 0){
+        if (i %1000000000000 == 0){
             i*i;
         }
         return;
@@ -34,12 +45,19 @@ void wait_for_a_second(){
 }
 
 int main(){
-    uthread_init(10000000);
+    uthread_init(1000000);
 
     uthread_spawn(f1);
     uthread_spawn(f2);
+    uthread_spawn(f3);
 
     wait_for_a_second();
+
+    uthread_terminate(2);
+    uthread_terminate(3);
+    uthread_terminate(1);
+
+
     wait_for_a_second();
     wait_for_a_second();
 
