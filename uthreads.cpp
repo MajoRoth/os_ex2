@@ -58,14 +58,23 @@ int get_first_available_id() {
 int append_thread(void (*f)(void)){
     ThreadPointer thread_ptr (new Thread(get_first_available_id(), f));
     threads[thread_ptr->getId()] = thread_ptr;
-    ready_queue.push_back(thread_ptr->getId());
+    if (thread_ptr->getId() != 0)
+    {
+        ready_queue.push_back(thread_ptr->getId());
+    }
     return thread_ptr->getId();
 }
 
 void debug (void) {
-    std::cout << "Printing uthreads library data" << std::endl;
+    std::cout << " --- Printing uthreads library data --- " << std::endl;
     std::cout << "running_id: " << running_id << " running_thread_state: " << running_thread_state << " totalQuantum: " << totalQuantum << std::endl;
+    std::cout << "Ready Queue: " << std::endl;
+    for(const auto& id: ready_queue){
+        std::cout << id << " ";
+    }
+    std::cout << std::endl;
     std::cout << "Threads: " << std::endl;
+    std::cout << "sec: " << timer.it_interval.tv_sec << "usec: " << timer.it_interval.tv_usec <<std::endl;
 
     for(const auto& thread: threads){
         std::cout << *thread.second;
@@ -97,53 +106,58 @@ void timer_handler(int sig)
 }
 
 int scheduler(){
-    if (running_id != -1){
+    if (running_id != -1) {
         int returned_val = sigsetjmp(threads[running_id]->getEnvironmentData(), 1);
-
-        if (returned_val == 1){
-            std::cout << "scheduler got 1 fromm sigsetjmp. exiting." << std::endl;
-            return -1;
+        std::cout << "RETURNED VAL: " << returned_val <<std::endl;
+        if (returned_val != 0)
+        {
+            return 0;
         }
-
-        if (running_thread_state == SLEEP){
+        if (running_thread_state == SLEEP) {
             sleeping_set.insert(running_id);
-        }
-        else if(running_thread_state == BLOCKED){
+        } else if (running_thread_state == BLOCKED) {
             blocked_set.insert(running_id);
-        }
-        else if (running_thread_state == TERMINATE){
+        } else if (running_thread_state == TERMINATE) {
             delete_thread(running_id);
-        }
-        else{
+        } else if (running_id != 0){
             ready_queue.push_back(running_id);
         }
+    }
 
+    // update sleeping threads
+    auto id = sleeping_set.begin();
+    while (id != sleeping_set.end()){
+        if (threads[*id]->decrement_quantums_to_sleep() == 0){
+            ready_queue.push_back(*id);
+            id = sleeping_set.erase(id);
+        }
+        id++;
+    }
+
+    if (!ready_queue.empty()){
         running_id = ready_queue.front();
         ready_queue.pop_front();
         running_thread_state = RUNNING;
+    }
+    else{
+        running_id = 0;
+    }
 
-        std::vector<int> ids_to_remove;
-        auto id = sleeping_set.begin();
-        while (id != sleeping_set.end()){
-            if (threads[*id]->decrement_quantums_to_sleep() == 0){
-                ready_queue.push_back(*id);
-                id = sleeping_set.erase(id);
-            }
-            ++id;
-        }
+    threads[running_id]->incQuantum();
+    setitimer(ITIMER_VIRTUAL, &timer, NULL);
 
-        setitimer(ITIMER_VIRTUAL, &timer, NULL);
-
-        threads[running_id]->incQuantum();
+    debug();
+    if (running_id != 0){
         siglongjmp(threads[running_id]->getEnvironmentData(), 1);
     }
+
 }
 
 void signals_init(int quantum_usecs){
-    timer.it_value.tv_sec = quantum_usecs / 100000;
-    timer.it_value.tv_usec = quantum_usecs % 100000;
-    timer.it_interval.tv_sec = quantum_usecs / 100000;
-    timer.it_interval.tv_usec = quantum_usecs % 100000;
+    timer.it_value.tv_sec = quantum_usecs / 1000000;
+    timer.it_value.tv_usec = quantum_usecs % 1000000;
+    timer.it_interval.tv_sec = quantum_usecs / 1000000;
+    timer.it_interval.tv_usec = quantum_usecs % 1000000;
 
     sigemptyset(&signals_set);
     sigemptyset(&sa.sa_mask);
@@ -178,6 +192,7 @@ int uthread_init(int quantum_usecs){
     signals_init(quantum_usecs);
 
     append_thread(nullptr);
+    running_id = -1;
     scheduler();
     return 0;
 }
