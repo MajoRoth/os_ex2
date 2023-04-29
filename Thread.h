@@ -29,7 +29,9 @@ public:
     /* Setters */
     //void setQuantom(int quantom_usecs): quantom(quantom_usecs);
     void incQuantum(void) {quantum++;}
-    void set_quantums_to_sleep(int quantums): sleep_quantums_left(quantums);
+    void set_quantums_to_sleep(int quantums){
+        sleep_quantums_left = quantums;
+    };
 
     /* Getters */
     int getId() const {return id;}
