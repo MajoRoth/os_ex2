@@ -6,8 +6,9 @@ set(CMAKE_CXX_STANDARD 14)
 include_directories(.)
 
 add_executable(os_ex2
-        main.cpp
         Thread.cpp
         Thread.h
-        ThreadManager.cpp
-        ThreadManager.h)
+        uthreads.cpp
+        uthreads.h
+        main.cpp)
+
