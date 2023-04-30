@@ -10,6 +10,6 @@ add_executable(os_ex2
         Thread.h
         uthreads.cpp
         uthreads.h
-        testing/test132.cpp)
+        tests/ex_2_tests_updated/tests/test3.in.cpp)
 #        main.cpp)
 

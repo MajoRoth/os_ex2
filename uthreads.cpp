@@ -130,7 +130,7 @@ bool does_thread_exist(int tid){
 }
 
 bool has_available_space(){
-    return get_threads_size() <= MAX_THREAD_NUM;
+    return get_threads_size() < MAX_THREAD_NUM;
 }
 
 void timer_handler(int sig)
@@ -183,9 +183,7 @@ int scheduler(){
 
 
 
-    debug();
-    if (uthread_get_total_quantums() == 46)
-        std::cout << "hello";
+    //debug();
 
     auto nextThreadEnv = threads.at(running_id)->getEnvironmentData();
 //    sigemptyset(&signals_set);
@@ -239,8 +237,9 @@ std::deque<int>::iterator iter_in_ready_queue(int id){
  */
 
 int uthread_init(int quantum_usecs){
+    //std::cout << "UTHREAD INIT" << std::endl;
     if (quantum_usecs <= 0){
-        std::cerr << "ERROR: quantum_usecs must be positive" << std::endl;
+        std::cout << "ERROR: quantum_usecs must be positive" << std::endl;
         return -1;
     }
 
@@ -277,7 +276,7 @@ int uthread_spawn(thread_entry_point entry_point){
 
 int uthread_terminate(int tid){
     BLOCK_SIGNALS();
-    printf(RED "stop" RESET);
+    //printf(RED "stop" RESET);
     if (tid == 0){
         exit(0);
     }
@@ -287,7 +286,7 @@ int uthread_terminate(int tid){
         UNBLOCK_SIGNALS();
         return -1;
     }
-    std::cout << "trying to terminate id: " << tid << std::endl;
+    //std::cout << "trying to terminate id: " << tid << std::endl;
     auto terminatedThreadIterator = iter_in_ready_queue(tid);
     if (terminatedThreadIterator != ready_queue.end()){
         ready_queue.erase(terminatedThreadIterator);
@@ -315,6 +314,7 @@ int uthread_block(int tid){
     BLOCK_SIGNALS();
     if (tid == 0){
         UNBLOCK_SIGNALS();
+        std::cout << "ERROR: tid 0 cannot be blocked" << std::endl;
         return -1;
     }
     if (!does_thread_exist(tid))
@@ -363,9 +363,9 @@ int uthread_resume(int tid){
     }
     sigemptyset(&signals_set);
     sigaddset(&signals_set, SIGVTALRM);
-    printf(RED "1" RESET);
+    //printf(RED "1" RESET);
     UNBLOCK_SIGNALS();
-    printf(RED "2" RESET);
+    //printf(RED "2" RESET);
     return 0;
 }
 
@@ -373,6 +373,7 @@ int uthread_sleep(int num_quantums){
     BLOCK_SIGNALS();
     if (running_id == 0)
     {
+        std::cout << "ERROR: main thread cannot sleep" << std::endl;
         UNBLOCK_SIGNALS();
         return -1;
     }
