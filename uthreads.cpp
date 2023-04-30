@@ -68,11 +68,25 @@ int append_thread(void (*f)(void)){
 void debug (void) {
     std::cout << " --- Printing uthreads library data --- " << std::endl;
     std::cout << "running_id: " << running_id << " running_thread_state: " << running_thread_state << " totalQuantum: " << totalQuantum << std::endl;
+
     std::cout << "Ready Queue: " << std::endl;
     for(const auto& id: ready_queue){
         std::cout << id << " ";
     }
     std::cout << std::endl;
+
+    std::cout << "Blocked Set: " << std::endl;
+    for(const auto& id: blocked_set){
+        std::cout << id << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Sleeping Set: " << std::endl;
+    for(const auto& id: sleeping_set){
+        std::cout << id << " ";
+    }
+    std::cout << std::endl;
+
     std::cout << "Threads: " << std::endl;
 
     for(const auto& thread: threads){
