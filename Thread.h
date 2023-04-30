@@ -4,9 +4,6 @@
 
 #ifndef EX2_THREAD_H
 #define EX2_THREAD_H
-#define GRN "\e[32m"
-#define RED "\x1B[31m"
-#define RESET "\x1B[0m"
 #include <setjmp.h>
 #include "uthreads.h"
 #include <iostream>
@@ -16,28 +13,20 @@ enum State{
 };
 
 class Thread{
-
 private:
     int id;
     int quantum;
     sigjmp_buf environmentData;
     char stack[STACK_SIZE];
-    int sleep_quantums_left;
+    int sleepQuantumsLeft;
 
 public:
     /* Constructors */
     Thread(int id, void (*f)(void));
 
     /* Setters */
-    //void setQuantom(int quantom_usecs): quantom(quantom_usecs);
-    void incQuantum(void)
-    {
-        //printf(RED "Thread %d quantum %d" RESET, id, quantum );
-        quantum++;
-    }
-    void set_quantums_to_sleep(int quantums){
-        sleep_quantums_left = quantums;
-    };
+    void incQuantum(void){quantum++;}
+    void set_quantums_to_sleep(int quantums){sleepQuantumsLeft = quantums;};
 
     /* Getters */
     int getId() const {return id;}
@@ -47,25 +36,6 @@ public:
     int decrement_quantums_to_sleep();
 
     friend std::ostream& operator<< (std::ostream& stream, const Thread & thread);
-
-
-
-
-
-
-
-
-
-
-
-
-
 };
 
-
-
-
 #endif //EX2_THREAD_H
-
-
-

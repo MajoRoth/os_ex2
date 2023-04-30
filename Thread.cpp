@@ -5,7 +5,6 @@
 #include "Thread.h"
 #include <setjmp.h>
 #include <signal.h>
-#include <unistd.h>
 #include <iostream>
 
 #ifdef __x86_64__
@@ -62,13 +61,13 @@ Thread::Thread(int id, void (*f)(void)) : id(id), quantum(0)
 
 
 std::ostream& operator<< (std::ostream& stream, const Thread & thread){
-    stream << "Thread {id=" << thread.getId() << "}: quantom=" << thread.getQuantum() << std::endl;
+    stream << "Thread {id=" << thread.getId() << "}: quantum=" << thread.getQuantum() << std::endl;
     return stream;
 }
 
 int Thread::decrement_quantums_to_sleep() {
-    sleep_quantums_left--;
-    if (sleep_quantums_left == 0){
+    sleepQuantumsLeft--;
+    if (sleepQuantumsLeft == 0){
         return 0;
     }
     return 1;
