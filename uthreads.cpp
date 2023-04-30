@@ -106,10 +106,12 @@ void timer_handler(int sig)
 }
 
 int scheduler(){
+    BLOCK_SIGNALS();
     if (running_id != -1) {
         int returned_val = sigsetjmp(threads[running_id]->getEnvironmentData(), 1);
         if (returned_val != 0)
         {
+            UNBLOCK_SIGNALS();
             return 0;
         }
         if (running_thread_state == SLEEP) {
@@ -143,7 +145,12 @@ int scheduler(){
     }
 
     threads[running_id]->incQuantum();
-    setitimer(ITIMER_VIRTUAL, &timer, NULL);
+
+    BLOCK_SIGNALS();
+    if(setitimer(ITIMER_VIRTUAL, &timer, NULL)){
+        std::cout << "system error: setitimer" <<std::endl;
+        exit(1);
+    }
 
     debug();
     if (running_id != 0){
@@ -158,9 +165,22 @@ void signals_init(int quantum_usecs){
     timer.it_interval.tv_sec = quantum_usecs / 1000000;
     timer.it_interval.tv_usec = quantum_usecs % 1000000;
 
-    sigemptyset(&signals_set);
-    sigemptyset(&sa.sa_mask);
-    sigaddset(&signals_set, SIGVTALRM);
+    if(sigemptyset(&signals_set)){
+        std::cout << "system error: setitimer" <<std::endl;
+        exit(1);
+    }
+
+    if(sigemptyset(&sa.sa_mask)){
+        std::cout << "system error: setitimer" <<std::endl;
+        exit(1);
+    }
+
+    if(sigaddset(&signals_set, SIGVTALRM)){
+        std::cout << "system error: setitimer" <<std::endl;
+        exit(1);
+    }
+
+
     sa.sa_handler = &timer_handler;
 
     sigaction(SIGVTALRM, &sa, NULL);
