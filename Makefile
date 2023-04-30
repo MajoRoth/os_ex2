@@ -2,20 +2,20 @@ CC=g++
 CXX=g++
 RANLIB=ranlib
 
-LIBSRC=main.cpp
+LIBSRC=Thread.cpp uthreads.cpp
 LIBOBJ=$(LIBSRC:.cpp=.o)
 
 INCS=-I.
 CFLAGS = -Wall -std=c++11 -g $(INCS)
 CXXFLAGS = -Wall -std=c++11 -g $(INCS)
 
-OSMLIB = libosm.a
+OSMLIB = libuthreads.a
 TARGETS = $(OSMLIB)
 
 TAR=tar
 TARFLAGS=-cvf
-TARNAME=ex1.tar
-TARSRCS=$(LIBSRC) Makefile README.md graph.png osm.cpp osm.h
+TARNAME=ex2.tar
+TARSRCS=$(LIBSRC) Makefile README.md Thread.h
 
 all: $(TARGETS)
 
