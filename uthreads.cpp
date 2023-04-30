@@ -45,15 +45,31 @@ struct sigaction sa;
 sigset_t signals_set;
 
 /**
- * PRIVATE FUNCTIONS
+ * PRIVATE FUNCTIONS DECLERATIONS
  */
+
+// system functions
+int error(ERR err, const std::string& text);
+void BLOCK_SIGNALS();
+void UNBLOCK_SIGNALS();
+void debug();
+
+// threads manager functions
+int get_first_available_id();
+int append_thread(void (*f)());
+int delete_thread(int id);
+
+
+
+
+
 int error(ERR err, const std::string& text){
     if (err == SYS_ERR){
         std::cerr << "system error: " << text <<std::endl;
         exit(1);
     }
     else{
-        std::cerr << "threads library error: " << text <<std::endl;
+        std::cerr << "thread library error: " << text <<std::endl;
         return -1;
     }
 }
@@ -172,7 +188,9 @@ int scheduler(){
     auto id = sleeping_set.begin();
     while (id != sleeping_set.end()){
         if (threads[*id]->decrement_quantums_to_sleep() == 0){
-            ready_queue.push_back(*id);
+            if (blocked_set.find(*id) == blocked_set.end()){
+                ready_queue.push_back(*id);
+            }
             id = sleeping_set.erase(id);
         }
         id++;
@@ -283,7 +301,6 @@ int uthread_terminate(int tid){
         UNBLOCK_SIGNALS();
         return error(UTHREADS_ERR, "tid " + std::to_string(tid) + " doesn't exist in threads list");
     }
-    //std::cout << "trying to terminate id: " << tid << std::endl;
     auto terminatedThreadIterator = iter_in_ready_queue(tid);
     if (terminatedThreadIterator != ready_queue.end()){
         ready_queue.erase(terminatedThreadIterator);
@@ -297,7 +314,6 @@ int uthread_terminate(int tid){
     }
     if (tid == running_id) {
         running_thread_state = TERMINATE;
-//        delete_thread(tid);
         UNBLOCK_SIGNALS();
         timer_handler(0);
         return 0;
@@ -340,7 +356,6 @@ int uthread_block(int tid){
         return 0;
     }
     UNBLOCK_SIGNALS();
-
 }
 
 int uthread_resume(int tid){
@@ -352,14 +367,14 @@ int uthread_resume(int tid){
     }
 
     if(blocked_set.find(tid) != blocked_set.end() ){
+        if (sleeping_set.find(tid) == sleeping_set.end()){
+            ready_queue.push_back(tid);
+        }
         blocked_set.erase(tid);
-        ready_queue.push_back(tid);
     }
     sigemptyset(&signals_set);
     sigaddset(&signals_set, SIGVTALRM);
-    //printf(RED "1" RESET);
     UNBLOCK_SIGNALS();
-    //printf(RED "2" RESET);
     return 0;
 }
 
