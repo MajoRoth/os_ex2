@@ -230,6 +230,7 @@ std::deque<int>::iterator iter_in_ready_queue(int id){
  */
 
 int uthread_init(int quantum_usecs){
+    std::cout << "UTHREAD INIT" << std::endl;
     if (quantum_usecs <= 0){
         std::cerr << "ERROR: quantum_usecs must be positive" << std::endl;
         return -1;
