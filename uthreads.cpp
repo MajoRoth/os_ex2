@@ -56,7 +56,7 @@ void debug();
 // threads manager functions
 int get_first_available_id();
 int append_thread(void (*f)());
-int delete_thread(int id);
+void delete_thread(int id);
 int get_threads_size();
 bool does_thread_exist(int tid);
 bool has_available_space();
@@ -166,6 +166,7 @@ int uthread_block(int tid){
         return 0;
     }
     UNBLOCK_SIGNALS();
+    return 0;
 }
 
 int uthread_resume(int tid){
@@ -309,7 +310,7 @@ void debug () {
     std::cout << " ------------------------------------- " << std::endl;
 }
 
-int delete_thread(int id) {
+void delete_thread(int id) {
     minHeap.push(id);
     threads.erase(id);
 }

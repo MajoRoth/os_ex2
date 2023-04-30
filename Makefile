@@ -15,7 +15,7 @@ TARGETS = $(OSMLIB)
 TAR=tar
 TARFLAGS=-cvf
 TARNAME=ex2.tar
-TARSRCS=$(LIBSRC) Makefile README.md Thread.h
+TARSRCS=$(LIBSRC) Makefile README Thread.h
 
 all: $(TARGETS)
 
