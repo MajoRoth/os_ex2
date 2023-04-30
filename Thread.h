@@ -4,7 +4,9 @@
 
 #ifndef EX2_THREAD_H
 #define EX2_THREAD_H
-
+#define GRN "\e[32m"
+#define RED "\x1B[31m"
+#define RESET "\x1B[0m"
 #include <setjmp.h>
 #include "uthreads.h"
 #include <iostream>
@@ -28,7 +30,11 @@ public:
 
     /* Setters */
     //void setQuantom(int quantom_usecs): quantom(quantom_usecs);
-    void incQuantum(void) {quantum++;}
+    void incQuantum(void)
+    {
+        //printf(RED "Thread %d quantum %d" RESET, id, quantum );
+        quantum++;
+    }
     void set_quantums_to_sleep(int quantums){
         sleep_quantums_left = quantums;
     };
