@@ -19,11 +19,10 @@
 
 #include "uthreads.h"
 #include "Thread.h"
+#define RED "\x1B[31m"
+#define RESET "\x1B[0m"
 
 int scheduler(void);
-
-#define BLOCK_SIGNALS() sigprocmask(SIG_SETMASK, &signals_set, NULL)
-#define UNBLOCK_SIGNALS() sigprocmask(SIG_UNBLOCK, &signals_set, NULL)
 
 
 typedef std::shared_ptr<Thread> ThreadPointer;
@@ -48,6 +47,19 @@ sigset_t signals_set;
 /**
  * PRIVATE FUNCTIONS
  */
+void BLOCK_SIGNALS(){
+    if (sigprocmask(SIG_BLOCK, &signals_set, NULL)){
+        std::cout << "Sys error" <<std::endl;
+        exit(1);
+    }
+}
+
+void UNBLOCK_SIGNALS(){
+    if (sigprocmask(SIG_UNBLOCK, &signals_set, NULL)){
+        std::cout << "Sys error" <<std::endl;
+        exit(1);
+    }
+}
 
 int get_first_available_id() {
     int firstID = minHeap.top();
@@ -68,6 +80,7 @@ int append_thread(void (*f)(void)){
 void debug (void) {
     std::cout << " --- Printing uthreads library data --- " << std::endl;
     std::cout << "running_id: " << running_id << " running_thread_state: " << running_thread_state << " totalQuantum: " << totalQuantum << std::endl;
+
     std::cout << "Ready Queue: " << std::endl;
     for(const auto& id: ready_queue){
         std::cout << id << " ";
@@ -82,6 +95,19 @@ void debug (void) {
         std::cout << id << " ";
     }
     std::cout << std::endl;
+
+    std::cout << "Blocked Set: " << std::endl;
+    for(const auto& id: blocked_set){
+        std::cout << id << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Sleeping Set: " << std::endl;
+    for(const auto& id: sleeping_set){
+        std::cout << id << " ";
+    }
+    std::cout << std::endl;
+
     std::cout << "Threads: " << std::endl;
 
     for(const auto& thread: threads){
@@ -115,10 +141,12 @@ void timer_handler(int sig)
 }
 
 int scheduler(){
+    BLOCK_SIGNALS();
     if (running_id != -1) {
-        int returned_val = sigsetjmp(threads[running_id]->getEnvironmentData(), 1);
+         int returned_val = sigsetjmp(threads.at(running_id)->getEnvironmentData(), 1);
         if (returned_val != 0)
         {
+            UNBLOCK_SIGNALS();
             return 0;
         }
         if (running_thread_state == SLEEP) {
@@ -127,7 +155,7 @@ int scheduler(){
             blocked_set.insert(running_id);
         } else if (running_thread_state == TERMINATE) {
             delete_thread(running_id);
-        } else if (running_id != 0){
+        } else {
             ready_queue.push_back(running_id);
         }
     }
@@ -152,12 +180,24 @@ int scheduler(){
     }
 
     threads[running_id]->incQuantum();
-    setitimer(ITIMER_VIRTUAL, &timer, NULL);
+
+
 
     debug();
-    if (running_id != 0){
-        siglongjmp(threads[running_id]->getEnvironmentData(), 1);
+    if (uthread_get_total_quantums() == 46)
+        std::cout << "hello";
+
+    auto nextThreadEnv = threads.at(running_id)->getEnvironmentData();
+//    sigemptyset(&signals_set);
+//    sigaddset(&signals_set, SIGVTALRM);
+    UNBLOCK_SIGNALS();
+    if(setitimer(ITIMER_VIRTUAL, &timer, NULL)){
+        std::cout << "system error: setitimer" <<std::endl;
+        exit(1);
     }
+
+
+    siglongjmp(nextThreadEnv, 1);
 
 }
 
@@ -167,9 +207,22 @@ void signals_init(int quantum_usecs){
     timer.it_interval.tv_sec = quantum_usecs / 1000000;
     timer.it_interval.tv_usec = quantum_usecs % 1000000;
 
-    sigemptyset(&signals_set);
-    sigemptyset(&sa.sa_mask);
-    sigaddset(&signals_set, SIGVTALRM);
+    if(sigemptyset(&signals_set)){
+        std::cout << "system error: setitimer" <<std::endl;
+        exit(1);
+    }
+
+    if(sigemptyset(&sa.sa_mask)){
+        std::cout << "system error: setitimer" <<std::endl;
+        exit(1);
+    }
+
+    if(sigaddset(&signals_set, SIGVTALRM)){
+        std::cout << "system error: setitimer" <<std::endl;
+        exit(1);
+    }
+
+
     sa.sa_handler = &timer_handler;
 
     sigaction(SIGVTALRM, &sa, NULL);
@@ -200,36 +253,41 @@ int uthread_init(int quantum_usecs){
     signals_init(quantum_usecs);
 
     append_thread(nullptr);
-    running_id = -1;
+    running_id = 0;
     scheduler();
     return 0;
 }
 
 int uthread_spawn(thread_entry_point entry_point){
+    BLOCK_SIGNALS();
     if (entry_point == nullptr){
         std::cout << "ERROR: uthread_spawn() cannot receive nullptr as an input" << std::endl;
+        UNBLOCK_SIGNALS();
         return -1;
     }
     if(has_available_space()){
         int id = append_thread(entry_point);
+        UNBLOCK_SIGNALS();
         return id;
     }
-    else{
-        std::cout << "ERROR: concurrent threads exceeded limit" << std::endl;
-        return -1;
-    }
+    std::cout << "ERROR: concurrent threads exceeded limit" << std::endl;
+    UNBLOCK_SIGNALS();
+    return -1;
 }
 
 int uthread_terminate(int tid){
+    BLOCK_SIGNALS();
+    printf(RED "stop" RESET);
     if (tid == 0){
         exit(0);
     }
     if (!does_thread_exist(tid))
     {
         std::cout << "ERROR: tid {" << tid <<"} doesn't exist in threads list" << std::endl;
+        UNBLOCK_SIGNALS();
         return -1;
     }
-
+    std::cout << "trying to terminate id: " << tid << std::endl;
     auto terminatedThreadIterator = iter_in_ready_queue(tid);
     if (terminatedThreadIterator != ready_queue.end()){
         ready_queue.erase(terminatedThreadIterator);
@@ -243,21 +301,26 @@ int uthread_terminate(int tid){
     }
     if (tid == running_id) {
         running_thread_state = TERMINATE;
-        delete_thread(tid);
+//        delete_thread(tid);
+        UNBLOCK_SIGNALS();
         timer_handler(0);
         return 0;
     }
     delete_thread(tid);
+    UNBLOCK_SIGNALS();
     return 0;
 }
 
 int uthread_block(int tid){
+    BLOCK_SIGNALS();
     if (tid == 0){
+        UNBLOCK_SIGNALS();
         return -1;
     }
     if (!does_thread_exist(tid))
     {
         std::cout << "ERROR: tid {" << tid <<"} doesn't exist in threads list" << std::endl;
+        UNBLOCK_SIGNALS();
         return -1;
     }
 
@@ -268,6 +331,7 @@ int uthread_block(int tid){
     }
     if(blocked_set.find(tid) != blocked_set.end() )
     {
+        UNBLOCK_SIGNALS();
         return 0;
     }
     if(sleeping_set.find(tid) != sleeping_set.end()){
@@ -276,16 +340,20 @@ int uthread_block(int tid){
     }
     if (tid == running_id) {
         running_thread_state = BLOCKED;
+        UNBLOCK_SIGNALS();
         timer_handler(0);
         return 0;
     }
+    UNBLOCK_SIGNALS();
 
 }
 
 int uthread_resume(int tid){
+    BLOCK_SIGNALS();
     if (!does_thread_exist(tid))
     {
         std::cout << "ERROR: tid {" << tid <<"} doesn't exist in threads list" << std::endl;
+        UNBLOCK_SIGNALS();
         return -1;
     }
 
@@ -293,22 +361,31 @@ int uthread_resume(int tid){
         blocked_set.erase(tid);
         ready_queue.push_back(tid);
     }
+    sigemptyset(&signals_set);
+    sigaddset(&signals_set, SIGVTALRM);
+    printf(RED "1" RESET);
+    UNBLOCK_SIGNALS();
+    printf(RED "2" RESET);
     return 0;
 }
 
 int uthread_sleep(int num_quantums){
+    BLOCK_SIGNALS();
     if (running_id == 0)
     {
+        UNBLOCK_SIGNALS();
         return -1;
     }
     if (!does_thread_exist(running_id))
     {
         std::cout << "ERROR: tid {" << running_id <<"} doesn't exist in threads list" << std::endl;
+        UNBLOCK_SIGNALS();
         return -1;
     }
     running_thread_state = SLEEP;
     threads[running_id]->set_quantums_to_sleep(num_quantums);
     timer_handler(0);
+    UNBLOCK_SIGNALS();
     return 0;
 }
 
@@ -321,12 +398,16 @@ int uthread_get_total_quantums(){
 }
 
 int uthread_get_quantums(int tid){
+    BLOCK_SIGNALS();
     if (!does_thread_exist(tid))
     {
         std::cout << "ERROR: tid {" << tid <<"} doesn't exist in threads list" << std::endl;
+        UNBLOCK_SIGNALS();
         return -1;
     }
-    return threads[tid]->getQuantum();
+    int q = threads[tid]->getQuantum();
+    UNBLOCK_SIGNALS();
+    return q;
 }
 
 
