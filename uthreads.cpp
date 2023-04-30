@@ -24,9 +24,6 @@
 
 int scheduler(void);
 
-#define BLOCK_SIGNALS() sigprocmask(SIG_BLOCK, &signals_set, NULL)
-#define UNBLOCK_SIGNALS() sigprocmask(SIG_UNBLOCK, &signals_set, NULL)
-
 
 typedef std::shared_ptr<Thread> ThreadPointer;
 std::map<int, ThreadPointer> threads;
@@ -50,6 +47,19 @@ sigset_t signals_set;
 /**
  * PRIVATE FUNCTIONS
  */
+void BLOCK_SIGNALS(){
+    if (sigprocmask(SIG_BLOCK, &signals_set, NULL)){
+        std::cout << "Sys error" <<std::endl;
+        exit(1);
+    }
+}
+
+void UNBLOCK_SIGNALS(){
+    if (sigprocmask(SIG_UNBLOCK, &signals_set, NULL)){
+        std::cout << "Sys error" <<std::endl;
+        exit(1);
+    }
+}
 
 int get_first_available_id() {
     int firstID = minHeap.top();
@@ -124,7 +134,7 @@ void timer_handler(int sig)
 int scheduler(){
     BLOCK_SIGNALS();
     if (running_id != -1) {
-        int returned_val = sigsetjmp(threads[running_id]->getEnvironmentData(), 1);
+         int returned_val = sigsetjmp(threads.at(running_id)->getEnvironmentData(), 1);
         if (returned_val != 0)
         {
             UNBLOCK_SIGNALS();
@@ -162,6 +172,13 @@ int scheduler(){
 
     threads[running_id]->incQuantum();
 
+
+
+    debug();
+    if (uthread_get_total_quantums() == 46)
+        std::cout << "hello";
+
+    auto nextThreadEnv = threads.at(running_id)->getEnvironmentData();
 //    sigemptyset(&signals_set);
 //    sigaddset(&signals_set, SIGVTALRM);
     UNBLOCK_SIGNALS();
@@ -170,11 +187,8 @@ int scheduler(){
         exit(1);
     }
 
-    debug();
-    std::cout << "hello";
 
-    std::cout << threads[running_id]->getEnvironmentData();
-    siglongjmp(threads[running_id]->getEnvironmentData(), 1);
+    siglongjmp(nextThreadEnv, 1);
 
 }
 
@@ -338,7 +352,11 @@ int uthread_resume(int tid){
         blocked_set.erase(tid);
         ready_queue.push_back(tid);
     }
+    sigemptyset(&signals_set);
+    sigaddset(&signals_set, SIGVTALRM);
+    printf(RED "1" RESET);
     UNBLOCK_SIGNALS();
+    printf(RED "2" RESET);
     return 0;
 }
 

@@ -11,5 +11,5 @@ add_executable(os_ex2
         uthreads.cpp
         uthreads.h
         testing/test132.cpp)
-        #main.cpp)
+#        main.cpp)
 
