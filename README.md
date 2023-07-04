@@ -1,6 +1,6 @@
-## cpp map reduce implementation
+## cpp user level threads
 
-implementation of multiprogramming using map reduce algrotihm.
+a static library that creates and manages user-level threads.
 
 supported functions are
 
